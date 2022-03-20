@@ -1,0 +1,10 @@
+[requires]
+opencv/4.5.5
+eigen/3.4.0
+
+[generators]
+cmake
+
+[imports]
+bin, *.dll -> ./bin 
+lib, *.dylib* -> ./bin
