@@ -1,0 +1,6 @@
+[requires]
+vcglib/2020.12
+muparser/2.3.2
+
+[generators]
+cmake
