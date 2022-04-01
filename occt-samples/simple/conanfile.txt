@@ -1,0 +1,5 @@
+[requires]
+opencascade/7.6.0
+
+[generators]
+cmake
