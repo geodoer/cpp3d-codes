@@ -7,6 +7,7 @@
 #include "BRepGProp.hxx"
 #include "STEPControl_Writer.hxx"
 #include "GProp_GProps.hxx"
+#include "io/TopoDSShapeIO.hpp"
 
 //创建Box、圆柱；Cut；计算Shape的属性
 void Create_Cut_Property()
@@ -30,6 +31,9 @@ void Create_Cut_Property()
 	writer.Transfer(boxWithHole, STEPControl_AsIs);
 	writer.Write("boxWithHole.stp");
 	std::cout << "Created box with hole, file is written to boxWithHole.stp" << std::endl;
+
+	//输出成OBJ
+	tu::TopoDSShapeIO::writeObj(boxWithHole, "test.obj");
 
 	//为Shape计算属性
 	//We compute some volumetric properties of the resulting shape

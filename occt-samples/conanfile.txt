@@ -1,0 +1,6 @@
+[requires]
+opencascade/7.5.0
+qt/5.15.3
+
+[generators]
+cmake_find_package
