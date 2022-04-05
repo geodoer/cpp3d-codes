@@ -6,16 +6,19 @@
 #include <Geom_BSplineSurface.hxx>
 #include <Geom_BezierSurface.hxx>
 #include <Geom2dAdaptor_Curve.hxx>
-#include <BRepPrimAPI_MakeBox.hxx>
 #include <STEPControl_Writer.hxx>
 
-int main()
+#include "algo/GeomAlgo.hpp"
+#include "io/TopoDSIO.hpp"
+#include <geodoer/io/ObjIOPlugin.hpp>
+
+/**
+ * \brief 创建BSpline曲面
+ */
+void CreateBSplineSurface()
 {
 	//为BSpline表面定义一个4x4的网格点
-	// Define a 4x4 grid of points for BSpline surface.
 	TColgp_Array2OfPnt aBSplinePnts(1, 4, 1, 4);
-		//TColgp_Array2OfPnt Point类型的二维数组
-		//传入四个参数：row的范围；col的范围
 
 	for(Standard_Integer i = 1; i <= 4; ++i)
 	{
@@ -28,39 +31,14 @@ int main()
 
 			if(1 < i && i < 4 && 1 < j && j < 4)
 			{
-				aPnt.SetZ(5.0);
+				aPnt.SetZ(5.0); //内部点z=5.0
 			}
 			else
 			{
-				aPnt.SetZ(0.0);
+				aPnt.SetZ(0.0); //边界点z=0
 			}
 
 			aBSplinePnts.SetValue(i, j, aPnt);
-		}
-	}
-
-	// Define a 4x4 grid of points for Bezier surface.
-	TColgp_Array2OfPnt aBezierPnts(1, 4, 1, 4);
-
-	for(Standard_Integer i = 1; i <= 4; ++i)
-	{
-		gp_Pnt aPnt;
-		aPnt.SetX(20.0 + 5.0 * i);
-
-		for(Standard_Integer j = 1; j <= 4; ++j)
-		{
-			aPnt.SetY(20.0 + 5.0 * j);
-
-			if(1 < i && i < 4 && 1 < j && j < 4)
-			{
-				aPnt.SetZ(5.0);
-			}
-			else
-			{
-				aPnt.SetZ(0.0);
-			}
-
-			aBezierPnts.SetValue(i, j, aPnt);
 		}
 	}
 
@@ -106,7 +84,41 @@ int main()
 	Handle(Geom_BSplineSurface) aBSplineSurf = new Geom_BSplineSurface(
 		aBSplinePnts, aBSplineWeights, aUKnots, aVKnots,
 		aUMults, aVMults, aUDegree, aVDegree, aUPeriodic, aVPeriodic);
-	std::cout << "Geom_BSplineSurface was created in red" << std::endl;
+
+	//保存查看
+	auto shape = geodoer::GeomAlgo::asTopoDS(aBSplineSurf);
+	geodoer::TopoDSIO::writeObj(shape, "Geom_BSplineSurface.obj");
+}
+
+/**
+ * \brief 创建Bezier曲面
+ */
+void CreateBezierSurface()
+{
+	// Define a 4x4 grid of points for Bezier surface.
+	TColgp_Array2OfPnt aBezierPnts(1, 4, 1, 4);
+
+	for(Standard_Integer i = 1; i <= 4; ++i)
+	{
+		gp_Pnt aPnt;
+		aPnt.SetX(20.0 + 5.0 * i);
+
+		for(Standard_Integer j = 1; j <= 4; ++j)
+		{
+			aPnt.SetY(20.0 + 5.0 * j);
+
+			if(1 < i && i < 4 && 1 < j && j < 4)
+			{
+				aPnt.SetZ(5.0);
+			}
+			else
+			{
+				aPnt.SetZ(0.0);
+			}
+
+			aBezierPnts.SetValue(i, j, aPnt);
+		}
+	}
 
 	// Define BSpline weights.
 	TColStd_Array2OfReal aBezierWeights(1, 4, 1, 4);
@@ -128,7 +140,38 @@ int main()
 
 	// Create a Bezier surface.
 	Handle(Geom_BezierSurface) aBezierSurf = new Geom_BezierSurface(aBezierPnts, aBezierWeights);
-	std::cout << "Geom_BezierSurface was created in green" << std::endl;
 
+	//保存查看
+	auto shape = geodoer::GeomAlgo::asTopoDS(aBezierSurf);
+	geodoer::TopoDSIO::writeObj(shape, "aBezierSurf.obj");
+}
+
+void BuildBezierFromPoints()
+{
+	geodoer::GPoints tmpPoints;
+	{
+		geodoer::ObjIOPlugin::read(R"(E:\cpp\cpp3d-codes\xy.txt)", tmpPoints);
+	}
+
+	TColgp_SequenceOfXYZ points;
+	{
+		for(auto it=tmpPoints.begin(); it!=tmpPoints.end(); ++it)
+		{
+			gp_XYZ xyz(it->x(), it->y(), it->z());
+			points.Append(xyz);
+		}
+	}
+
+	auto surface = geodoer::GeomAlgo::buildBSplineSurface(points);
+	auto shape = geodoer::GeomAlgo::asTopoDS(surface);
+	geodoer::TopoDSIO::writeObj(shape, "tmp.obj");
+}
+
+int main()
+{
+	CreateBSplineSurface();
+	CreateBezierSurface();
+
+	BuildBezierFromPoints();
 	return 0;
 }

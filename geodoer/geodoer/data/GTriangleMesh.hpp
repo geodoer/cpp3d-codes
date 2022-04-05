@@ -1,58 +1,56 @@
 ﻿#pragma once
-#include<vector>
+#include"geodoer/data/GTriangle.hpp"
 
-#include"data/UTriangle.hpp"
+namespace geodoer {
 
-namespace tu {
-
-class UTriangleMesh
+class GTriangleMesh
 {
 protected:
-	std::vector<UPoint>	m_vertices;	//顶点
+	std::vector<GPoint>	m_vertices;	//顶点
 	std::vector<int>	m_indices;	//面索引（从0开始）
 
 public:
 	int vertexSize() const;
 	int addVertex(const double x, const double y, const double z);
-	UPoint vertex(int index) const;
-	UPoint& vertex(int index);
+	GPoint vertex(int index) const;
+	GPoint& vertex(int index);
 
 	int faceSize() const;
 	int addFace(const int idx1,const int idx2,const int idx3);
-	UTriangle face(int index) const;
+	GTriangle face(int index) const;
 
 	int indiceSize() const;
 	int indice(int index) const;
 	int& indice(int index);
 };
 
-inline int UTriangleMesh::vertexSize() const
+inline int GTriangleMesh::vertexSize() const
 {
 	return m_vertices.size();
 }
 
-inline int UTriangleMesh::addVertex(const double x, const double y, const double z)
+inline int GTriangleMesh::addVertex(const double x, const double y, const double z)
 {
-	m_vertices.emplace_back(UPoint({x,y,z}));
+	m_vertices.emplace_back(GPoint({x,y,z}));
 	return m_vertices.size() - 1;
 }
 
-inline UPoint UTriangleMesh::vertex(int index) const
+inline GPoint GTriangleMesh::vertex(int index) const
 {
 	return m_vertices[index];
 }
 
-inline UPoint& UTriangleMesh::vertex(int index)
+inline GPoint& GTriangleMesh::vertex(int index)
 {
 	return m_vertices[index];
 }
 
-inline int UTriangleMesh::faceSize() const
+inline int GTriangleMesh::faceSize() const
 {
 	return m_indices.size() / 3;
 }
 
-inline int UTriangleMesh::addFace(const int idx1, const int idx2, const int idx3)
+inline int GTriangleMesh::addFace(const int idx1, const int idx2, const int idx3)
 {
 	m_indices.emplace_back(idx1);
 	m_indices.emplace_back(idx2);
@@ -60,27 +58,27 @@ inline int UTriangleMesh::addFace(const int idx1, const int idx2, const int idx3
 	return m_indices.size() / 3 - 1;
 }
 
-inline UTriangle UTriangleMesh::face(int index) const
+inline GTriangle GTriangleMesh::face(int index) const
 {
 	index *= 3;
-	return UTriangle({
+	return GTriangle({
 		m_vertices[m_indices[index++]],
 		m_vertices[m_indices[index++]],
 		m_vertices[m_indices[index]]
 	});
 }
 
-inline int UTriangleMesh::indiceSize() const
+inline int GTriangleMesh::indiceSize() const
 {
 	return m_indices.size();
 }
 
-inline int UTriangleMesh::indice(int index) const
+inline int GTriangleMesh::indice(int index) const
 {
 	return m_indices[index];
 }
 
-inline int& UTriangleMesh::indice(int index)
+inline int& GTriangleMesh::indice(int index)
 {
 	return m_indices[index];
 }

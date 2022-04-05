@@ -11,6 +11,9 @@ COMPONENTS
 REQUIRED
 )
 
+find_package(geodoer
+REQUIRED)
+
 file(GLOB files "*.cpp")
 foreach(file ${files})
   #工程名

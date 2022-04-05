@@ -5,9 +5,11 @@
 #include "BRepPrimAPI_MakeBox.hxx"
 #include "BRepAlgoAPI_Cut.hxx"
 #include "BRepGProp.hxx"
-#include "STEPControl_Writer.hxx"
 #include "GProp_GProps.hxx"
-#include "io/TopoDSShapeIO.hpp"
+
+#include "io/TopoDSIO.hpp"
+
+#include "geodoer/io/ObjIOPlugin.hpp"
 
 //创建Box、圆柱；Cut；计算Shape的属性
 void Create_Cut_Property()
@@ -26,14 +28,12 @@ void Create_Cut_Property()
 	TopoDS_Shape boxWithHole = cutMaker.Shape();
 
 	//将TopoDS_Shape写出
-	//可使用opencascade-7.5.0\samples\mfc\Import Export查看此文件
-	STEPControl_Writer writer;
-	writer.Transfer(boxWithHole, STEPControl_AsIs);
-	writer.Write("boxWithHole.stp");
+	geodoer::TopoDSIO::writeSTEP(boxWithHole, "boxWithHole.stp");
 	std::cout << "Created box with hole, file is written to boxWithHole.stp" << std::endl;
 
 	//输出成OBJ
-	tu::TopoDSShapeIO::writeObj(boxWithHole, "test.obj");
+	auto mesh = geodoer::TopoDSIO::as(boxWithHole);
+	geodoer::ObjIOPlugin::write(mesh, "test.obj");
 
 	//为Shape计算属性
 	//We compute some volumetric properties of the resulting shape

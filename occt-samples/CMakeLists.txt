@@ -4,6 +4,8 @@ project(occt-samples)
 # 让find_package找到conan安装的包
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/build)  #添加到find_package module模式搜索路径
 list(APPEND CMAKE_PREFIX_PATH ${CMAKE_SOURCE_DIR}/build)  #添加到find_package config模式搜索路径
+#添加geodoer库的路径
+list(APPEND CMAKE_MODULE_PATH ${CMAKE_SOURCE_DIR}/../geodoer)
 
 #
 # 项目配置

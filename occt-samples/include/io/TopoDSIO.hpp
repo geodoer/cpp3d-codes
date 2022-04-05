@@ -1,7 +1,6 @@
 ﻿#pragma once
-#include"data/UTriangleMesh.hpp"
-#include"data/UPolyline.hpp"
-#include"io/UTriangleMeshIO.hpp"
+#include"geodoer/data/GTriangleMesh.hpp"
+#include"geodoer/data/GPolyline.hpp"
 
 #include<TopoDS.hxx>
 #include<TopoDS_Shape.hxx>
@@ -21,21 +20,37 @@
 #include<Bnd_Box.hxx>
 #include<BRepBndLib.hxx>
 
-namespace tu {
+#include<STEPControl_Writer.hxx>
+#include <geodoer/io/ObjIOPlugin.hpp>
 
-class TopoDSShapeIO
+namespace geodoer {
+
+
+/**
+ * \brief OCC TopoDS与外部的IO
+ */
+class TopoDSIO
 {
-public:
+public: //文件IO
 	/**
-	 * \brief
+	 * \brief 保存成STEP格式
 	 * \param theShape
-	 * \param objPath
+	 * \param stepPath 如test.stp
+	 * 可使用opencascade-7.5.0\samples\mfc\Import Export查看此文件
+	 * 测试通过
+	 */
+	static void writeSTEP(const TopoDS_Shape& theShape, const Standard_CString stepPath);
+
+	/**
+	 * \brief 保存成Obj格式
+	 * \param theShape
+	 * \param objPath 如"test.obj"
 	 * \return
 	 * 测试通过
 	 */
 	static bool writeObj(const TopoDS_Shape& theShape, const std::string& objPath);
 
-public:
+public: //数据结构IO
 	/**
 	 * \brief TopoDS_Shape to TriangleMesh
 	 * \param theShape
@@ -43,33 +58,40 @@ public:
 	 * \return
 	 * 测试通过
 	 */
-	static UTriangleMesh as(const TopoDS_Shape& theShape);
+	static GTriangleMesh as(const TopoDS_Shape& theShape);
 
 	/**
 	 * \brief TriangleMesh to TopoDS_Shape
 	 * \param theMesh
 	 * \return
 	 */
-	static TopoDS_Shape as(const UTriangleMesh& theMesh);
+	static TopoDS_Shape as(const GTriangleMesh& theMesh);
 
-public:
 	/**
 	 * \brief TopoDS_Edge to Polygline
 	 * \param theEdge
 	 * \param deflection
 	 * \return
 	 */
-	static UPolyline as(const TopoDS_Edge& theEdge, double deflection = 0.01);
+	static GPolyline as(const TopoDS_Edge& theEdge, double deflection = 0.01);
 };
 
-inline bool TopoDSShapeIO::writeObj(const TopoDS_Shape& theShape, const std::string& objPath)
+inline void TopoDSIO::writeSTEP(const TopoDS_Shape& theShape, const Standard_CString stepPath)
 {
-	return UTriangleMeshIO::writeObj(as(theShape), objPath);
+	STEPControl_Writer writer;
+	writer.Transfer(theShape, STEPControl_AsIs);
+	writer.Write(stepPath);
 }
 
-inline UTriangleMesh TopoDSShapeIO::as(const TopoDS_Shape& theShape)
+inline bool TopoDSIO::writeObj(const TopoDS_Shape& theShape, const std::string& objPath)
 {
-	UTriangleMesh mesh;
+	auto mesh = as(theShape);
+	return geodoer::ObjIOPlugin::write(mesh, objPath);
+}
+
+inline GTriangleMesh TopoDSIO::as(const TopoDS_Shape& theShape)
+{
+	GTriangleMesh mesh;
 
 	Standard_Real aDeflection = 0.5;
 	{
@@ -140,7 +162,7 @@ inline UTriangleMesh TopoDSShapeIO::as(const TopoDS_Shape& theShape)
 	return mesh;
 }
 
-inline TopoDS_Shape TopoDSShapeIO::as(const UTriangleMesh& theMesh)
+inline TopoDS_Shape TopoDSIO::as(const GTriangleMesh& theMesh)
 {
 	TopoDS_Compound aComp;          //复合体
 	BRep_Builder BuildTool;
@@ -200,9 +222,9 @@ inline TopoDS_Shape TopoDSShapeIO::as(const UTriangleMesh& theMesh)
 	return aSewingTool.SewedShape();
 }
 
-inline UPolyline TopoDSShapeIO::as(const TopoDS_Edge& theEdge, double deflection)
+inline GPolyline TopoDSIO::as(const TopoDS_Edge& theEdge, double deflection)
 {
-	UPolyline line;
+	GPolyline line;
 
 	BRepMesh_IncrementalMesh(theEdge, deflection);
 	TopLoc_Location aLoc;
@@ -215,7 +237,7 @@ inline UPolyline TopoDSShapeIO::as(const TopoDS_Edge& theEdge, double deflection
 		gp_Pnt aPnt = polyline->Nodes().Value(i);
 		aPnt.Transform(aTrsf);
 
-		line.emplace_back(UPoint({aPnt.X(), aPnt.Y(), aPnt.Z()}));
+		line.emplace_back(GPoint({ aPnt.X(), aPnt.Y(), aPnt.Z() }));
 	}
 
 	return line;
