@@ -11,6 +11,7 @@
 
 #include<BRepMesh_IncrementalMesh.hxx>
 #include<BRep_Tool.hxx>
+#include<BRepTools.hxx>
 #include<BRepBuilderAPI_Sewing.hxx>
 #include<BRep_Builder.hxx>
 #include<BRepBuilderAPI_MakeVertex.hxx>
@@ -32,6 +33,13 @@ namespace geodoer {
 class TopoDSIO
 {
 public: //文件IO
+	/**
+	 * \brief 
+	 * \param theShape 
+	 * \param path 如wire.brep
+	 * \return 
+	 */
+	static bool write(const TopoDS_Shape& theShape, const Standard_CString path);
 	/**
 	 * \brief 保存成STEP格式
 	 * \param theShape
@@ -75,6 +83,11 @@ public: //数据结构IO
 	 */
 	static GPolyline as(const TopoDS_Edge& theEdge, double deflection = 0.01);
 };
+
+inline bool TopoDSIO::write(const TopoDS_Shape& theShape, const Standard_CString path)
+{
+	return BRepTools::Write(theShape, path);
+}
 
 inline void TopoDSIO::writeSTEP(const TopoDS_Shape& theShape, const Standard_CString stepPath)
 {

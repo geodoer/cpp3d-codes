@@ -41,6 +41,14 @@ public:
 
 class GPoints : public std::vector<GPoint>
 {
+public:
+	GPoints(std::initializer_list<GPoint> l)
+	{
+		for (auto it = l.begin(); it != l.end(); ++it)
+		{
+			this->emplace_back(*it);
+		}
+	}
 };
 
 }

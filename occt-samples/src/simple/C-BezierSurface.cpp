@@ -148,22 +148,61 @@ void CreateBezierSurface()
 
 void BuildBezierFromPoints()
 {
-	geodoer::GPoints tmpPoints;
+	//网格点
+	geodoer::GPoint pnts[][3] =
 	{
-		geodoer::ObjIOPlugin::read(R"(E:\cpp\cpp3d-codes\xy.txt)", tmpPoints);
-	}
-
-	TColgp_SequenceOfXYZ points;
-	{
-		for(auto it=tmpPoints.begin(); it!=tmpPoints.end(); ++it)
 		{
-			gp_XYZ xyz(it->x(), it->y(), it->z());
-			points.Append(xyz);
+			{-200,200,0},
+			{0,100,0},
+			{200,200,0}
+		},
+		{
+			{-200,0,0},
+			{0,0,-100},
+			{200,0,0}
+		},
+		{
+			{-200,-200,0},
+			{0,-200,0},
+			{200,-200,0}
+		}
+	};
+
+	int rowSize = sizeof(pnts) / sizeof(pnts[0]);
+	int colSize = sizeof(pnts[0]) / sizeof(geodoer::GPoint);
+
+	TColgp_Array2OfPnt aBezierPnts(1, rowSize, 1, colSize);
+
+	for(Standard_Integer i = 1; i <= rowSize; ++i)
+	{
+		for(Standard_Integer j = 1; j <= colSize; ++j)
+		{
+			auto pnt = pnts[i - 1][j - 1];
+			gp_Pnt aPnt(pnt.x(), pnt.y(), pnt.z());
+			aBezierPnts.SetValue(i, j, aPnt);
 		}
 	}
 
-	auto surface = geodoer::GeomAlgo::buildBSplineSurface(points);
-	auto shape = geodoer::GeomAlgo::asTopoDS(surface);
+	// Define BSpline weights.
+	TColStd_Array2OfReal aBezierWeights(1, rowSize, 1, colSize);
+
+	for(Standard_Integer i = 1; i <= rowSize; ++i)
+	{
+		for(Standard_Integer j = 1; j <= colSize; ++j)
+		{
+			if(1 < i && i < rowSize && 1 < j && j < rowSize)
+			{
+				aBezierWeights.SetValue(i, j, 2); //中间点设置为1.5
+			}
+			else
+			{
+				aBezierWeights.SetValue(i, j, 1); //周围点设置为0.5
+			}
+		}
+	}
+
+	Handle(Geom_BezierSurface) aBezierSurf = new Geom_BezierSurface(aBezierPnts, aBezierWeights);
+	auto shape = geodoer::GeomAlgo::asTopoDS(aBezierSurf);
 	geodoer::TopoDSIO::writeObj(shape, "tmp.obj");
 }
 
