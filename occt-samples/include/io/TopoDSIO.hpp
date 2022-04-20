@@ -22,7 +22,13 @@
 #include<BRepBndLib.hxx>
 
 #include<STEPControl_Writer.hxx>
+#include<STEPControl_Reader.hxx>
+
+#include<StlAPI_Writer.hxx>
+#include<StlAPI.hxx>
+
 #include <geodoer/io/ObjIOPlugin.hpp>
+#include <BRepBuilderAPI_MakeEdge.hxx>
 
 namespace geodoer {
 
@@ -47,8 +53,8 @@ public: //文件IO
 	 * 可使用opencascade-7.5.0\samples\mfc\Import Export查看此文件
 	 * 测试通过
 	 */
-	static void writeSTEP(const TopoDS_Shape& theShape, const Standard_CString stepPath);
-
+	static void writeSTEP(const TopoDS_Shape& theShape, const Standard_CString stepPath, STEPControl_StepModelType type = STEPControl_AsIs);
+	static TopoDS_Shape readSTEP(const Standard_CString stepPath);
 	/**
 	 * \brief 保存成Obj格式
 	 * \param theShape
@@ -57,6 +63,9 @@ public: //文件IO
 	 * 测试通过
 	 */
 	static bool writeObj(const TopoDS_Shape& theShape, const std::string& objPath);
+
+	static bool writeSTL(const TopoDS_Shape& theShape, const std::string& stlPath);
+	static TopoDS_Shape readSTL(const std::string& stlPath);
 
 public: //数据结构IO
 	/**
@@ -82,17 +91,57 @@ public: //数据结构IO
 	 * \return
 	 */
 	static GPolyline as(const TopoDS_Edge& theEdge, double deflection = 0.01);
+
+	static std::vector<TopoDS_Edge> asEdges(const GMultiPolyline& lines);
+
+	static gp_Pnt as(const GPoint& point);
 };
+
+inline TopoDS_Shape TopoDSIO::readSTEP(const Standard_CString stepPath)
+{
+	STEPControl_Reader reader;
+	reader.ReadFile(stepPath);
+	reader.TransferRoots();
+	return reader.OneShape();
+}
+
+inline std::vector<TopoDS_Edge> TopoDSIO::asEdges(const GMultiPolyline& lines)
+{
+	std::vector<TopoDS_Edge> edges;
+
+	for(const auto& line : lines)
+	{
+		for(int i=1,size= line.size(); i<size; ++i)
+		{
+			auto A = line[i - 1];
+			auto B = line[i];
+
+			auto edge = BRepBuilderAPI_MakeEdge(as(A), as(B));
+
+			if(edge.IsDone())
+			{
+				edges.emplace_back(edge);
+			}
+		}
+	}
+
+	return edges;
+}
+
+inline gp_Pnt TopoDSIO::as(const GPoint& point)
+{
+	return gp_Pnt(point.x(), point.y(), point.z());
+}
 
 inline bool TopoDSIO::write(const TopoDS_Shape& theShape, const Standard_CString path)
 {
 	return BRepTools::Write(theShape, path);
 }
 
-inline void TopoDSIO::writeSTEP(const TopoDS_Shape& theShape, const Standard_CString stepPath)
+inline void TopoDSIO::writeSTEP(const TopoDS_Shape& theShape, const Standard_CString stepPath, STEPControl_StepModelType type)
 {
 	STEPControl_Writer writer;
-	writer.Transfer(theShape, STEPControl_AsIs);
+	writer.Transfer(theShape, type);
 	writer.Write(stepPath);
 }
 
@@ -100,6 +149,27 @@ inline bool TopoDSIO::writeObj(const TopoDS_Shape& theShape, const std::string& 
 {
 	auto mesh = as(theShape);
 	return geodoer::ObjIOPlugin::write(mesh, objPath);
+}
+
+inline bool TopoDSIO::writeSTL(const TopoDS_Shape& theShape, const std::string& stlPath)
+{
+	try
+	{
+		StlAPI_Writer writer;
+
+		return writer.Write(theShape, stlPath.data());
+	}
+	catch (Standard_ConstructionError& e)
+	{
+		return false;
+	}
+}
+
+inline TopoDS_Shape TopoDSIO::readSTL(const std::string& stlPath)
+{
+	TopoDS_Shape stlShape;
+	StlAPI::Read(stlShape, stlPath.data());
+	return stlShape;
 }
 
 inline GTriangleMesh TopoDSIO::as(const TopoDS_Shape& theShape)

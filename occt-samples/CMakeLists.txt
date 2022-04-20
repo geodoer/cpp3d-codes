@@ -33,4 +33,4 @@ endforeach()
 # 开启工程分组
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 #关闭编译器优化
-set(CMAKE_CXX_FLAGS “-fno-elide-constructors ${CMAKE_CXX_FLAGS}”)
+set(CMAKE_CXX_FLAGS "-fno-elide-constructors ${CMAKE_CXX_FLAGS}")

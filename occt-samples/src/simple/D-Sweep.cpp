@@ -19,35 +19,9 @@
 #include <BRepPrimAPI_MakePrism.hxx>
 #include <BRepOffsetAPI_MakePipe.hxx>
 
-//一、根据锥角使模型产生形变
-void BRepOffsetAPI_DraftAngle_Sample()
-{
-	//一个盒子
-	TopoDS_Shape S = BRepPrimAPI_MakeBox(200., 300., 150.);
 
-	//在形状上添加锥度的变换
-	BRepOffsetAPI_DraftAngle adraft(S);
 
-	TopExp_Explorer Ex;
-
-	for(Ex.Init(S, TopAbs_FACE); Ex.More(); Ex.Next()) //遍历面
-	{
-		TopoDS_Face F = TopoDS::Face(Ex.Current());
-		Handle(Geom_Plane) surf = Handle(Geom_Plane)::DownCast(BRep_Tool::Surface(F));
-		gp_Pln apln = surf->Pln();
-		gp_Dir dirF = apln.Axis().Direction();
-
-		if(dirF.IsNormal(gp_Dir(0., 0., 1.), Precision::Angular()))
-		{
-			adraft.Add(F, gp_Dir(0., 0., 1.), 15.*M_PI / 180, gp_Pln(gp::XOY()));
-		}
-	}
-
-	TopoDS_Shape resultShape = adraft.Shape();
-	geodoer::TopoDSIO::writeObj(resultShape, "D-Sweep-DraftAngle.obj");
-}
-
-//二、沿方向拉伸，生成线性扫掠
+//=======================================沿方向拉伸，生成线性扫掠
 //1. TopoDS_Wire(线)拉伸成Face
 void BRepPrimAPI_MakePrism_Wire_Sample()
 {
@@ -97,7 +71,7 @@ void BRepPrimAPI_MakePrism_Face_Sample()
 	geodoer::TopoDSIO::writeObj(myBody, "D-Sweep-FaceToSolid.obj");
 }
 
-//三、沿路径拉伸
+//==================================================沿路径拉伸
 //1. 管道
 void BRepOffsetAPI_MakePipe_Sample()
 {
@@ -125,10 +99,14 @@ void BRepOffsetAPI_MakePipe_Sample()
 
 int main()
 {
-	BRepOffsetAPI_DraftAngle_Sample();
 	BRepPrimAPI_MakePrism_Wire_Sample();
 	BRepPrimAPI_MakePrism_Face_Sample();
 	BRepOffsetAPI_MakePipe_Sample();
 
 	return 0;
 }
+
+/*
+ * 参考资料
+ * 1. https://www.i4k.xyz/article/qq_22642239/88248387
+ */
