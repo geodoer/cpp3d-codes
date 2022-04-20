@@ -3,8 +3,9 @@
 #include"geodoer/data/GPolyline.hpp"
 
 #include<string>
+#include<sstream>
 #include<fstream>
-
+	
 namespace geodoer
 {
 
@@ -18,12 +19,12 @@ public:
 	static bool write(const GPoints& points, const std::string& objPath);
 
 	static bool write(const GPolyline& line, const std::string& objPath);
-	
-	//测试通过
-	static bool write(const GTriangleMesh& mesh, const std::string& objPath);
+	static bool write(const GMultiPolyline& polylines, const std::string& objPath);	//ok
+	static bool write(const GTriangleMesh& mesh, const std::string& objPath);		//ok
 
 public:
 	static bool read(const std::string& objPath, GPoints& points);
+	static bool read(const std::string& objPath, GMultiPolyline& polylines);	//ok
 };
 
 inline bool ObjIOPlugin::write(const GPoints& points, const std::string& objPath)
@@ -66,6 +67,40 @@ inline bool ObjIOPlugin::write(const GPolyline& line, const std::string& objPath
 	ofile << "l " << line.size() << " 1" << std::endl;
 
 	ofile.close();
+	return true;
+}
+
+inline bool ObjIOPlugin::write(const GMultiPolyline& polylines, const std::string& objPath)
+{
+	std::ofstream ofile(objPath);
+
+	if (!ofile.is_open())
+	{
+		return false;
+	}
+
+	int vCnt = 0;
+
+	for(const auto& line : polylines)
+	{
+		//point
+		for(const auto& pnt : line)
+		{
+			ofile << "v " << pnt.x() << " " << pnt.y() << " " << pnt.z() << std::endl;
+		}
+
+		//segment indices
+		//Meshlab不支持Polyline，只支持线段
+		for(int i=1; i<line.size(); ++i)
+		{
+			ofile << "l " << i + vCnt << " " << i + vCnt + 1 << std::endl; //obj的下标从1开始
+		}
+
+		vCnt += line.size();
+	}
+
+	ofile.close();
+	return true;
 }
 
 inline bool ObjIOPlugin::write(const GTriangleMesh& mesh, const std::string& objPath)
@@ -125,6 +160,70 @@ inline bool ObjIOPlugin::read(const std::string& objPath, GPoints& points)
 		}
 
 		points.emplace_back(pnt);
+	}
+
+	in.close();
+	return true;
+}
+
+inline bool ObjIOPlugin::read(const std::string& objPath, GMultiPolyline& polylines)
+{
+	std::ifstream in(objPath);
+
+	if (!in.is_open())
+	{
+		return false;
+	}
+	
+	//read points
+	GPoints points;
+
+	for (std::string tmp; getline(in, tmp); )
+	{
+		std::istringstream lineIn(tmp);//转化成数据流
+
+		std::string flag;
+		lineIn >> flag;
+
+		if (flag[0] != 'v')
+		{
+			continue;
+		}
+
+		GPoint pnt;
+		for (int i = 0; i<3 && !lineIn.eof(); ++i)
+		{
+			lineIn >> pnt[i];
+		}
+
+		points.emplace_back(pnt);
+	}
+
+	//read liens
+	in.clear();
+	in.seekg(0, std::ios::beg); //beg(begin)。到达文件尾巴后，再调用seekg无效。所以要先in.clear()
+
+	for (std::string tmp; getline(in, tmp); )
+	{
+		std::istringstream lineIn(tmp);//转化成数据流
+
+		std::string flag;
+		lineIn >> flag;
+
+		if (flag[0] != 'l')
+		{
+			continue;
+		}
+
+		GPolyline line;
+		while(!lineIn.eof())
+		{
+			int idx;
+			lineIn >> idx;
+			line.emplace_back(points[idx-1]);
+		}
+
+		polylines.emplace_back(line);
 	}
 
 	in.close();

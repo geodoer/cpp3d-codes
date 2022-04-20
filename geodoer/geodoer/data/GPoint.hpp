@@ -11,6 +11,12 @@ public:
 	GPoint() = default;
 	GPoint(double a, double b, double c) : array({ a,b,c }){}
 public:
+	GPoint operator-(const GPoint& rhs) const
+	{
+		return { this->x() - rhs.x(), this->y() - rhs.y(), this->z() - rhs.z() };
+	}
+
+public:
 	double x() const
 	{
 		return (*this)[0];
@@ -42,6 +48,7 @@ public:
 class GPoints : public std::vector<GPoint>
 {
 public:
+	GPoints() = default;
 	GPoints(std::initializer_list<GPoint> l)
 	{
 		for (auto it = l.begin(); it != l.end(); ++it)
