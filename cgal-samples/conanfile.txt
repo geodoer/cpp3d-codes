@@ -2,4 +2,4 @@
 cgal/5.3
 
 [generators]
-cmake
+cmake_find_package

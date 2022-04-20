@@ -1,4 +1,4 @@
-#include <iostream>
+﻿#include <iostream>
 #include <CGAL/Exact_predicates_exact_constructions_kernel.h>
 typedef CGAL::Exact_predicates_exact_constructions_kernel Kernel; //精确谓词、精确构造的内核
 typedef Kernel::Point_3 CGPoint3;
