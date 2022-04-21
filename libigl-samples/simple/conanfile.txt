@@ -1,5 +1,0 @@
-[requires]
-libigl/2.3.0
-
-[generators]
-cmake_find_package
