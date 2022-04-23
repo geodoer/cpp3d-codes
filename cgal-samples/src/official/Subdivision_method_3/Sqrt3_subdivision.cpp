@@ -6,8 +6,12 @@
 #include <boost/lexical_cast.hpp>
 #include <iostream>
 #include <fstream>
+#include <CGAL/Polyhedron_3.h>
+
 typedef CGAL::Simple_cartesian<double>          Kernel;
 typedef CGAL::Surface_mesh<Kernel::Point_3>     PolygonMesh;
+
+typedef CGAL::Polyhedron_3<Kernel>              Polyhedron3;
 
 using namespace std;
 using namespace CGAL;
@@ -20,6 +24,7 @@ int main(int argc, char **argv)
 	const char* out_file = R"(C:\Users\2107\Desktop\Sqrt3_subdivision_result.off)";   //输出Mesh(.off)
 
 	PolygonMesh pmesh;
+	//Polyhedron3 pmesh;
 	std::ifstream in(in_file);
 
 	if(in.fail())
