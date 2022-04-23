@@ -25,4 +25,7 @@ macro(add_simple_cpp file)
 endmacro()
 
 add_simple_cpp("HiLigIgl.cpp"       igl::glfw)
-add_simple_cpp("106ViewerMenu.cpp"  igl::imgui)
+
+add_simple_cpp("ui/106ViewerMenu.cpp"  igl::imgui)
+
+add_simple_cpp("cgal/Subdivision_method.cpp" igl_copyleft::cgal)
