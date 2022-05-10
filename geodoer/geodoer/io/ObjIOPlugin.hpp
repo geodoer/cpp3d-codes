@@ -185,7 +185,7 @@ inline bool ObjIOPlugin::read(const std::string& objPath, GMultiPolyline& polyli
 		std::string flag;
 		lineIn >> flag;
 
-		if (flag[0] != 'v')
+		if (flag != "v")
 		{
 			continue;
 		}
